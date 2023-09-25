@@ -1,28 +1,25 @@
-import joblib
 import base64
 import numpy as np
 import json
-
-from io import BytesIO
+import io
+import cv2
+import pytesseract
 from PIL import Image
-
-model_file = '/opt/ml/model'
-model = joblib.load(model_file)
-
 
 def lambda_handler(event, context):
     image_bytes = event['body'].encode('utf-8')
-    image = Image.open(BytesIO(base64.b64decode(image_bytes))).convert(mode='L')
-    image = image.resize((28, 28))
+    image_dict = json.loads(image_bytes.decode('utf-8'))
+    image = Image.open(io.BytesIO(base64.b64decode(image_dict["content"])))
+    nimg = np.array(image)
+    img_cv = cv2.cvtColor(nimg, cv2.COLOR_BGR2RGB)
+    img_rgb = cv2.cvtColor(img_cv, cv2.COLOR_BGR2RGB)
 
-    x = np.array(image)
-    prediction = int(model.predict(x.reshape(1, -1))[0])
+    result = pytesseract.image_to_string(img_rgb)
 
     return {
-        'statusCode': 200,
-        'body': json.dumps(
-            {
-                "predicted_label": prediction,
-            }
-        )
+        "statusCode": 200,
+        "body": json.dumps({
+            "message": result,
+        }),
     }
+
