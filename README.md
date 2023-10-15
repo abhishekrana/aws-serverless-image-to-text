@@ -9,7 +9,7 @@ cd image-to-text
 sam build
 aws cloudformation delete-stack --stack-name image-to-text
 sleep 10
-sam deploy
+sam deploy --stack-name image-to-text --guided
 ```
 
 ## Deploy locally
